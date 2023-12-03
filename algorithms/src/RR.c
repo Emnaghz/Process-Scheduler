@@ -2,14 +2,16 @@
 
 struct node *sortByTaPreemptive(struct Queue *queue, int quantum){
    struct node *Res = NULL;
-   int finish=atoi(queue->front->data[1]),exec;
+   int finish=atoi(queue->front->data[1]);
+   int exec;
    struct node *tmp;
    struct node *process = (struct node*)malloc(sizeof(struct node));
-   while(queue->front){
+   while(queue->front){ //tant que l queue mafraghch
       process->data[0] = strdup(queue->front->data[0]);
       process->data[1] = strdup(queue->front->data[1]);
       process->data[2] = strdup(queue->front->data[2]);
       process->data[3] = strdup(queue->front->data[3]);
+      // process->data[4] = strdup(queue->front->data[4]);
 
       deQueue(queue);
    
@@ -22,8 +24,9 @@ struct node *sortByTaPreemptive(struct Queue *queue, int quantum){
             tmp=Res;
          }
          else{
+            printf("Turnaround 2 time for process %s: %d\n", process->data[0], atoi(process->data[2]));
             tmp->next = Node;
-            tmp=tmp->next;
+            tmp=tmp->next; 
          }    
          finish += atoi(process->data[2]);
       }else{
@@ -54,7 +57,7 @@ struct node *sortByTaPreemptive(struct Queue *queue, int quantum){
 void RR(char configFile[],int q){
    struct node *processesList = getProcessesListFromFile(configFile);
    printProcessTable(processesList);
-   bubbleSort(processesList, 1); // Asc Sort List Based On TA (which is on index 1 in DATA array)
+   sortByTA(processesList); // Asc Sort List Based On TA (which is on index 1 in DATA array)
    struct Queue *queue = createQueueFromLinkedList(processesList);  
    struct node *tmp=sortByTaPreemptive(queue,q);
    addIdleNodes(tmp);

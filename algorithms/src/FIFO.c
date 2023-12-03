@@ -3,7 +3,7 @@
 void fifo(char *processesFile){
    struct node *processesList = getProcessesListFromFile(processesFile);
    printProcessTable(processesList);
-   bubbleSort(processesList, 1); // Asc Sort List Based On TA 
+   sortByTA(processesList); // Sort List comparing ascendante Based On TA
    addIdleNodes(processesList);
    printGanttChart(processesList, "FIFO");
 }  

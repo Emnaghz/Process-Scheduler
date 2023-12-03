@@ -6,18 +6,18 @@
 #include <unistd.h>
 
 struct node {
-   char *data[4]; // [Process_Name, TA, TE, Priority]
+   char *data[4]; // [Process_Name, TA, TE, Priority, initValTA]
    struct node *next;
 };
  
-// The queue, front stores the front node of LL and rear stores the last node of LL
+// The queue, front stores the front node of LL and end stores the last node of LL
 struct Queue {
-   struct node *front, *rear;
+   struct node *front, *end;
 };
  
 
 /* Function to bubble sort the given linked list based on an index to compare with */
-void bubbleSort(struct node *start, int comparisonIndex);
+void sortByTA(struct node *start);
   
 /* Function to swap data of two nodes a and b */
 void swap(struct node *a, struct node *b);
@@ -163,10 +163,13 @@ int min(int a, int b){
 
 void addIdleNodes(struct node *head){
    struct node *tmp = head->next, *prev = head;
-   int finish = atoi(head->data[1]) + atoi(head->data[2]);
+   int finish = atoi(head->data[1]) + atoi(head->data[2]); // TA + TE
+   int count=0;
+   int totalTurnaroundTime = 0;
    while(tmp){
-      int ta = atoi(tmp->data[1]);
-      int te = atoi(tmp->data[2]);
+      count++;
+      int ta = atoi(tmp->data[1]); 
+      int te = atoi(tmp->data[2]); 
       int idle = (ta > finish) ? (ta - finish) : 0;
       if(idle > 0){
          struct node *newNode = (struct node*)malloc(sizeof(struct node));
@@ -180,27 +183,26 @@ void addIdleNodes(struct node *head){
          prev->next = newNode;
          prev = prev->next;
       }
-      finish += te + idle;
+      if(count==1){
+         printf("\n********************** Turnaround ***********************\n\n");
+         printf("Turnaround time for process %s: %d\n", prev->data[0], finish-atoi(prev->data[1]));
+         totalTurnaroundTime+= finish-atoi(prev->data[1]);
+      }
+      finish += te + idle; 
+      printf("Turnaround time for process %s: %d\n", tmp->data[0], finish-atoi(tmp->data[1]));
+      totalTurnaroundTime+= finish-atoi(tmp->data[1]);
       tmp = tmp->next;
       prev = prev->next;
    }
+   double averageTurnaroundTime = (double)totalTurnaroundTime / (count+1);
+   // printf("Count: %d\n", count);
+   printf("Average Turnaround Time: %.2lf\n", averageTurnaroundTime);
 }
 
-
-struct node* inverseLinkedList(struct node *node){
-   if(node->next == NULL)
-      return node;
-   struct node *node1 = inverseLinkedList(node->next);
-   node->next->next = node;
-   node->next = NULL;
-   return node1;
-}
-
-
-void bubbleSort(struct node *start, int comparisonIndex){
+void sortByTA(struct node *start){
    int swapped;
    struct node *ptr1;
-   struct node *lptr = NULL;
+   struct node *lptr = NULL; //last pointer
    /* Checking for empty list */
    if (start == NULL)
       return;
@@ -208,10 +210,10 @@ void bubbleSort(struct node *start, int comparisonIndex){
       swapped = 0;
       ptr1 = start;
       while (ptr1->next != lptr){
-         int a = atoi(ptr1->data[comparisonIndex]); //convertir en entier.
-         int b = atoi(ptr1->next->data[comparisonIndex]);
-         bool condition = a > b; // comparing based on isDesc
-         if (condition){ 
+         int a = atoi(ptr1->data[1]); //convertir en entier.
+         int b = atoi(ptr1->next->data[1]);
+         // comparing ascendante
+         if (a > b){ 
                swap(ptr1, ptr1->next);
                swapped = 1;
          }
@@ -232,31 +234,42 @@ void swap(struct node *a, struct node *b){
 }
 
 
+struct node* inverseLinkedList(struct node *node){
+   //condition d'arret
+   if(node->next == NULL)
+      return node;
+   struct node *node1 = inverseLinkedList(node->next);
+   node->next->next = node;
+   node->next = NULL;
+   return node1;
+}
+
 char *remove_white_spaces(char *str){
-   char *tmp = strdup(str);
+   char *tmp = strdup(str); //creates a copy of the string pointed to, and returns a pointer to the new copy
 	int i = 0, j = 0;
 	while (tmp[i]){
 		if (tmp[i] != ' ')
           tmp[j++] = tmp[i];
 		i++;
 	}
-	tmp[j] = '\0';
+	tmp[j] = '\0'; // null terminator
+   //in C, strings are represented as arrays of characters, and the end of a string is marked by a null terminator
 	return tmp;
 }
 
 
 struct node *getProcessesListFromFile(char *configFile){
-   FILE *fp;
-   fp = fopen(configFile, "r");
-   if(fp == NULL) {
-      perror("Unable to open file!");
+   FILE *openedFile;
+   openedFile = fopen(configFile, "r");
+   if(openedFile == NULL) {
+      printf("Unable to open file!");
       exit(1);   
    }
    char * line = NULL;
    size_t len = 0;
    ssize_t read;
    struct node *processesLinkedList = NULL;
-   while ((read = getline(&line, &len, fp)) != -1) {
+   while ((read = getline(&line, &len, openedFile)) != -1) {
       if(remove_white_spaces(line)[0] == '#'){
          printf("Commentaire : %s\n", line);
          continue;
@@ -264,23 +277,28 @@ struct node *getProcessesListFromFile(char *configFile){
       else if(remove_white_spaces(line)[0] == '\n')
          continue;
       struct node *newNode = (struct node*)malloc(sizeof(struct node));
-      char *token = strtok(line, ":");
+      char *token = strtok(line, ":"); //splitting string into smaller tokenS(liste chainé kol data thezek lelli mbaadha) based on ':'
       int i=0;
-      while(token != NULL){
-         token[strcspn(token, "\n")] = 0; // deleting \n from token
-         newNode->data[i] = strdup(token);
-         token = strtok(NULL, ":");
+      while(token != NULL && i<4){
+         token[strcspn(token, "\n")] = 0; // deleting \n from the end of the token
+         newNode->data[i] = strdup(token); //duplicating the data and storing it
+         token = strtok(NULL, ":"); //advances the token pointer to the next token in the string.
          i++;
       }
-      newNode->next = processesLinkedList;
+      // newNode->data[4] = strdup(newNode->data[1]);
+      newNode->next = processesLinkedList; //kenek fehem l linked list taw tefhemha ;)
       processesLinkedList = newNode;
    }
-   fclose(fp);
+   fclose(openedFile);
    if(processesLinkedList == NULL){
-      printf("Config file is empty!\n");
+      printf("Processes file is empty!\n");
       exit(1);
    }
-   processesLinkedList = inverseLinkedList(processesLinkedList);
+
+   //la liste chainé ajoute chaque process dans la liste au début 
+   //==> premier process est placé le dernier dans la liste 
+   //==> il faut l'inverser 
+   processesLinkedList = inverseLinkedList(processesLinkedList); 
    return processesLinkedList;
 }
 
@@ -364,7 +382,7 @@ struct node* newNode(struct node *dataNode){
 // A utility function to create an empty queue
 struct Queue *createQueue(){
     struct Queue* q = (struct Queue*)malloc(sizeof(struct Queue));
-    q->front = q->rear = NULL;
+    q->front = q->end = NULL;
     return q;
 }
 
@@ -373,9 +391,9 @@ struct Queue *createQueue(){
 void enQueue(struct Queue *q, struct node *element){
    // Create a new LL node
    struct node *temp = newNode(element);
-   // If queue is empty, then new node is front and rear both
-   if (q->rear == NULL) {
-      q->front = q->rear = temp;
+   // If queue is empty, then new node is front and end both
+   if (q->end == NULL) {
+      q->front = q->end = temp;
       return;
    }
    if(atoi(q->front->data[1]) > atoi(temp->data[1])){
@@ -383,9 +401,9 @@ void enQueue(struct Queue *q, struct node *element){
       q->front = temp;
       return;
    }
-   if(atoi(q->rear->data[1]) <= atoi(temp->data[1])){
-      q->rear->next = temp;
-      q->rear = temp;
+   if(atoi(q->end->data[1]) <= atoi(temp->data[1])){
+      q->end->next = temp;
+      q->end = temp;
       return;
    }
    struct node *tmp = q->front->next, *prev = q->front;
@@ -407,9 +425,9 @@ void deQueue(struct Queue* q){
    //struct node *ret = q->front;
    q->front = q->front->next;
 
-   // If front becomes NULL, then change rear also as NULL
+   // If front becomes NULL, then change end also as NULL
    if (q->front == NULL)
-      q->rear = NULL;
+      q->end = NULL;
    free(temp);
 }
 
