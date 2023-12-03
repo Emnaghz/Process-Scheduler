@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 struct node {
-   char *data[4]; // [Process_Name, TA, TE, Priority, initValTA]
+   char *data[5]; // [Process_Name, TA, TE, Priority, initValTA]
    struct node *next;
 };
  
@@ -47,7 +47,7 @@ void printGanttChart(struct node *head, char *algorithmName);
 void printProcessTable(struct node *head);
 
 /* Function to add Idle nodes to print them in gantt diagram */
-void addIdleNodes(struct node *head);
+void addIdleNodes(struct node *head, char *algorithmName);
 
 /* Function to sort process by TA preemptive */
 struct node *sortByTaPreemptive(struct Queue *queue, int quantum);
@@ -161,7 +161,7 @@ int min(int a, int b){
 }
 
 
-void addIdleNodes(struct node *head){
+void addIdleNodes(struct node *head, char *algorithmName){
    struct node *tmp = head->next, *prev = head;
    int finish = atoi(head->data[1]) + atoi(head->data[2]); // TA + TE
    int count=0;
@@ -183,20 +183,24 @@ void addIdleNodes(struct node *head){
          prev->next = newNode;
          prev = prev->next;
       }
-      if(count==1){
-         printf("\n********************** Turnaround ***********************\n\n");
+      if(count==1 && (strcmp(algorithmName, "FIFO") == 0  || strcmp(algorithmName, "PRIORITY") == 0 || strcmp(algorithmName, "SJF") == 0)){
+         printf("\n********************** %s Turnaround ***********************\n\n", algorithmName);
          printf("Turnaround time for process %s: %d\n", prev->data[0], finish-atoi(prev->data[1]));
          totalTurnaroundTime+= finish-atoi(prev->data[1]);
       }
       finish += te + idle; 
-      printf("Turnaround time for process %s: %d\n", tmp->data[0], finish-atoi(tmp->data[1]));
-      totalTurnaroundTime+= finish-atoi(tmp->data[1]);
+      if (strcmp(algorithmName, "FIFO") == 0  || strcmp(algorithmName, "PRIORITY") == 0 || strcmp(algorithmName, "SJF") == 0){
+         printf("Turnaround time for process %s: %d\n", tmp->data[0], finish-atoi(tmp->data[1]));
+         totalTurnaroundTime+= finish-atoi(tmp->data[1]);
+      }
       tmp = tmp->next;
       prev = prev->next;
    }
+   if (strcmp(algorithmName, "FIFO") == 0  || strcmp(algorithmName, "PRIORITY") == 0 || strcmp(algorithmName, "SJF") == 0){
    double averageTurnaroundTime = (double)totalTurnaroundTime / (count+1);
    // printf("Count: %d\n", count);
    printf("Average Turnaround Time: %.2lf\n", averageTurnaroundTime);
+   }
 }
 
 void sortByTA(struct node *start){
@@ -285,7 +289,7 @@ struct node *getProcessesListFromFile(char *configFile){
          token = strtok(NULL, ":"); //advances the token pointer to the next token in the string.
          i++;
       }
-      // newNode->data[4] = strdup(newNode->data[1]);
+      newNode->data[4] = strdup(newNode->data[1]);
       newNode->next = processesLinkedList; //kenek fehem l linked list taw tefhemha ;)
       processesLinkedList = newNode;
    }
@@ -375,6 +379,7 @@ struct node* newNode(struct node *dataNode){
     temp->data[1] = strdup(dataNode->data[1]);
     temp->data[2] = strdup(dataNode->data[2]);
     temp->data[3] = strdup(dataNode->data[3]);
+    temp->data[4] = strdup(dataNode->data[4]);
     temp->next = NULL;
     return temp;
 }

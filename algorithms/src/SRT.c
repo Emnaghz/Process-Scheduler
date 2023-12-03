@@ -55,7 +55,7 @@ void SRT(char configFile[]){
    printProcessTable(processesList);
    bubbleSortByTwoIndexes(processesList, 1, 2, false); // Sort List by Ta & Te to get First process to run
    SRTFPreemptive(processesList);
-   addIdleNodes(processesList);
+   addIdleNodes(processesList,"SRT");
    printGanttChart(processesList, "SRT");
 }
 

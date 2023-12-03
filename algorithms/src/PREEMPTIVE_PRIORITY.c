@@ -58,7 +58,7 @@ void PreemptivePriority(char configFile[]){
    printProcessTable(processesList);
    bubbleSortByTwoIndexes(processesList, 1, 2, false); // Sort List by Ta & Te to get First process to run
    PriorityPreemptive(processesList);
-   addIdleNodes(processesList);
+   addIdleNodes(processesList,"Pre-emptive Priority");
    printGanttChart(processesList, "Pre-emptive Priority");
 }
 
