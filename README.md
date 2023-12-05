@@ -11,8 +11,6 @@ Process Scheduler
   - [Running the Code with Generated Processes](#running-the-code-with-generated-processes)
   - [Result](#result)
 - [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
