@@ -4,6 +4,7 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 CFLAGS := -Wall -g
 
 all: $(SRC_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%) main
+
 main: main.c
 	gcc $(CFLAGS) main.c -o main
 	@chmod a+x main
