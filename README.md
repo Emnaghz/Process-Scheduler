@@ -52,8 +52,8 @@ Follow on-screen prompts to select a scheduling algorithm.
 ### Result
 Upon completion, the program will display:
 
-    - Processes Table
-    - Turnaround data
-    - Gantt chart of the chosen algorithm
+- Processes Table
+- Turnaround data
+- Gantt chart of the chosen algorithm
 
 Interact with the program as instructed on the console.
