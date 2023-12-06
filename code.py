@@ -23,16 +23,12 @@ def create():
             pr = random.randint(startPR, endPR)
             processes.append(f'P{i}:{ta}:{te}:{pr}')
 
-        while(not ok):
-            if not (0 <= startTA < endTA and 1 <= startTE <= endTE and 0 <= startPR <= endPR):
-                    windows.errMsg.setText("Invalid Input!")
-            else:
-                ok = True
-                # Write processes to process.txt
-                with open('process.txt', 'w') as file:
-                    file.write('\n'.join(processes))
-                    windows.errMsg.setText("")
-                    windows.msg.setText("created successfully")
+            # Write processes to process.txt
+            with open('process.txt', 'w') as file:
+                file.write('\n'.join(processes))
+                windows.errMsg.setText("")
+                windows.msg.setText("created successfully!")
+
     except Exception as e:
         windows.errMsg.setText(f"Invalid Input! Check Again!")
 
